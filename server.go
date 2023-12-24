@@ -33,40 +33,74 @@ func main() {
 			fmt.Println("Error accepting...", err.Error())
 			os.Exit(1)
 		}
-
 		go processClient(conn)
 	}
 }
 
 func processClient(conn net.Conn) {
-	buffer := make([]byte, 1024)
-	messageLen, err := conn.Read(buffer)
-	if err != nil {
-		fmt.Println("Error reading...", err.Error())
+	defer conn.Close()
+
+	for {
+		buffer := make([]byte, 1024)
+		messageLen, err := conn.Read(buffer)
+		if err != nil {
+			fmt.Println("Error reading...", err.Error())
+		}
+		var bufferStr string = string(buffer[:messageLen])
+		fmt.Printf("Received: %s\n", strings.ReplaceAll(bufferStr, "\r\n", "\\r\\n"))
+
+		messageContents, err := parseRESPMessage(buffer)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+
+		var output string = ""
+
+		switch strings.ToUpper(messageContents[0]) {
+		case "PING":
+			res, err := handlePING(messageContents)
+			if err != nil {
+				output = ToSimpleError(err.Error())
+			} else {
+				output = ToBulkString(res)
+			}
+
+		case "ECHO":
+			res, err := handleECHO(messageContents)
+			if err != nil {
+				output = ToSimpleError(err.Error())
+			} else {
+				output = ToBulkString(res)
+			}
+
+		case "GET":
+			res, err := handleGET(messageContents)
+			if err != nil {
+				if err.Error() == "NULL" {
+					output = ToNull()
+				} else {
+					output = ToSimpleError(err.Error())
+				}
+			} else {
+				output = ToBulkString(res)
+			}
+
+		case "SET":
+			res, err := handleSET(messageContents)
+			if err != nil {
+				output = ToSimpleError(err.Error())
+			} else {
+				output = ToSimpleString(res)
+			}
+
+		default:
+			output = ToSimpleError(fmt.Sprintf("unknown command '%s'", messageContents[0]))
+		}
+
+		fmt.Printf("Sending: %s\n", strings.ReplaceAll(output, "\r\n", "\\r\\n"))
+		conn.Write([]byte(output))
 	}
-	var bufferStr string = string(buffer[:messageLen])
-	fmt.Printf("Received: %s\n", strings.ReplaceAll(bufferStr, "\r\n", "\\r\\n"))
-
-	messageContents, err := parseRESPMessage(buffer)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-
-	var output string = ""
-
-	switch messageContents[0] {
-	case "PING":
-		out, _ := handlePing(messageContents)
-		output = out
-	}
-
-	conn.Write([]byte("+" + output + "\r\n"))
-
-	// response
-	messageLen, err = conn.Read(buffer)
-
-	conn.Close()
 }
 
 func parseRESPMessage(buffer []byte) ([]string, error) {
@@ -105,8 +139,4 @@ func parseRESPMessage(buffer []byte) ([]string, error) {
 	} else {
 		return make([]string, 0), fmt.Errorf("Unsupported Message Type")
 	}
-}
-
-func encodeRESPMessage() {
-
 }

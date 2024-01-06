@@ -17,6 +17,10 @@ const (
 )
 
 func main() {
+	startServer()
+}
+
+func startServer() {
 	fmt.Printf("Starting redis server on port %s ...\n", SERVER_PORT)
 	server, err := net.Listen(SERVER_TYPE, SERVER_HOST+":"+SERVER_PORT)
 	if err != nil {
@@ -43,11 +47,18 @@ func processClient(conn net.Conn) {
 	for {
 		buffer := make([]byte, 1024)
 		messageLen, err := conn.Read(buffer)
-		if err != nil {
-			fmt.Println("Error reading...", err.Error())
+		if err != nil && messageLen == 0 {
+			conn.Close()
+			break
 		}
 		var bufferStr string = string(buffer[:messageLen])
-		fmt.Printf("Received: %s\n", strings.ReplaceAll(bufferStr, "\r\n", "\\r\\n"))
+		fmt.Printf("Received (%d): %s\n", messageLen, strings.ReplaceAll(bufferStr, "\r\n", "\\r\\n"))
+
+		// handle redis-benchmark CONFIG request
+		if bufferStr == "*3\r\n$6\r\nCONFIG\r\n$3\r\nGET\r\n$4\r\nsave\r\n*3\r\n$6\r\nCONFIG\r\n$3\r\nGET\r\n$10\r\nappendonly\r\n" {
+			fmt.Println("CONFIG BS 4 redis-benchmark...")
+			break
+		}
 
 		messageContents, err := parseRESPMessage(buffer)
 		if err != nil {

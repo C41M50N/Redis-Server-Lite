@@ -37,3 +37,7 @@ func ToArray(value []string) string {
 func ToNull() string {
 	return "_\r\n"
 }
+
+func ToNullArray() string {
+	return "*-1\r\n"
+}

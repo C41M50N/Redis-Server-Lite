@@ -105,6 +105,14 @@ func processClient(conn net.Conn) {
 				output = ToSimpleString(res)
 			}
 
+		case "EXISTS":
+			res, err := handleEXISTS(messageContents)
+			if err != nil {
+				output = ToSimpleError(err.Error())
+			} else {
+				output = ToInteger(res)
+			}
+
 		default:
 			output = ToSimpleError(fmt.Sprintf("unknown command '%s'", messageContents[0]))
 		}

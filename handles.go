@@ -124,3 +124,19 @@ func handleGET(contents []string) (string, error) {
 	}
 	return "", fmt.Errorf("wrong number of arguments for 'get' command")
 }
+
+// https://redis.io/commands/exists/
+func handleEXISTS(contents []string) (int, error) {
+	if len(contents) >= 2 {
+		count := 0
+		keys := contents[1:]
+		for _, key := range keys {
+			_, ok := db.Load(key)
+			if ok {
+				count++
+			}
+		}
+		return count, nil
+	}
+	return -1, fmt.Errorf("wrong number of arguments for 'EXISTS' command")
+}

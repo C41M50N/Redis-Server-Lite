@@ -333,3 +333,74 @@ func TestStoragePXAT3(t *testing.T) {
 	response := readBuffer(client)
 	assert.Equal(t, []byte(ToSimpleError("invalid expire time in 'set' command")), response)
 }
+
+func TestEXISTS1(t *testing.T) {
+	client := createMockConnection()
+	defer client.Close()
+
+	// set
+	Set := func(key string, value string) {
+		args := []string{"SET", key, value}
+		client.Write([]byte(ToArray(args)))
+		response := readBuffer(client)
+		assert.Equal(t, []byte(ToSimpleString("OK")), response)
+	}
+
+	db := map[string]string{
+		"key1": "value1",
+		"key2": "value2",
+		"key3": "value3",
+	}
+
+	keys := make([]string, 0, len(db))
+	for k, v := range db {
+		Set(k, v)
+		keys = append(keys, k)
+	}
+
+	// exists
+	args := []string{"EXISTS"}
+	args = append(args, keys...)
+	client.Write([]byte(ToArray(args)))
+	response := readBuffer(client)
+	assert.Equal(t, []byte(ToInteger(3)), response)
+}
+
+func TestEXISTS2(t *testing.T) {
+	client := createMockConnection()
+	defer client.Close()
+
+	// set
+	Set := func(key string, value string) {
+		args := []string{"SET", key, value}
+		client.Write([]byte(ToArray(args)))
+		response := readBuffer(client)
+		assert.Equal(t, []byte(ToSimpleString("OK")), response)
+	}
+
+	db := map[string]string{
+		"key1": "value1",
+		"key2": "value2",
+		"key3": "value3",
+	}
+
+	for k, v := range db {
+		Set(k, v)
+	}
+
+	// exists
+	args := []string{"EXISTS", "randomkey1", "randomkey2"}
+	client.Write([]byte(ToArray(args)))
+	response := readBuffer(client)
+	assert.Equal(t, []byte(ToInteger(0)), response)
+}
+
+func TestEXISTS3(t *testing.T) {
+	client := createMockConnection()
+	defer client.Close()
+
+	args := []string{"EXISTS"}
+	client.Write([]byte(ToArray(args)))
+	response := readBuffer(client)
+	assert.Equal(t, []byte(ToSimpleError("wrong number of arguments for 'EXISTS' command")), response)
+}

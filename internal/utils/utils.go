@@ -37,7 +37,7 @@ func ProcessClient(conn net.Conn) {
 			os.Exit(1)
 		}
 
-		var output string = ""
+		var output []byte
 
 		switch strings.ToUpper(messageContents[0]) {
 		case "PING":
@@ -88,8 +88,8 @@ func ProcessClient(conn net.Conn) {
 			output = r.ToSimpleError(fmt.Sprintf("unknown command '%s'", messageContents[0]))
 		}
 
-		fmt.Printf("Sending: %s\n", strings.ReplaceAll(output, "\r\n", "\\r\\n"))
-		conn.Write([]byte(output))
+		fmt.Printf("Sending: %s\n", strings.ReplaceAll(string(output), "\r\n", "\\r\\n"))
+		conn.Write(output)
 	}
 }
 
@@ -121,12 +121,12 @@ func parseRESPMessage(buffer []byte) ([]string, error) {
 		res = arrayStrings
 
 	default:
-		fmt.Println("UNSUPPORTED")
+		fmt.Println("recieved unsupported message type")
 	}
 
 	if res != nil {
 		return res, nil
 	} else {
-		return make([]string, 0), fmt.Errorf("Unsupported Message Type")
+		return make([]string, 0), fmt.Errorf("unsupported message type")
 	}
 }

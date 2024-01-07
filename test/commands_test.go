@@ -35,68 +35,74 @@ func TestUnknownCommand(t *testing.T) {
 	client := createMockConnection()
 	defer client.Close()
 
-	client.Write([]byte(r.ToArray([]string{"PEEK"})))
+	args := []string{"PEEK"}
+
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
 
-	assert.Equal(t, []byte("-unknown command 'PEEK'\r\n"), response)
+	assert.Equal(t, r.ToSimpleError("unknown command 'PEEK'"), response)
 }
 
 func TestPing1(t *testing.T) {
 	client := createMockConnection()
 	defer client.Close()
 
-	client.Write([]byte(r.ToArray([]string{"PING"})))
+	args := []string{"PING"}
+
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
 
-	assert.Equal(t, []byte(r.ToBulkString("PONG")), response)
+	assert.Equal(t, r.ToBulkString("PONG"), response)
 }
 
 func TestPing2(t *testing.T) {
 	client := createMockConnection()
 	defer client.Close()
 
-	arg := "rainbow"
+	message := "anyone there?"
+	args := []string{"PING", message}
 
-	client.Write([]byte(r.ToArray([]string{"PING", arg})))
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
 
-	assert.Equal(t, []byte(r.ToBulkString(arg)), response)
+	assert.Equal(t, r.ToBulkString(message), response)
 }
 
 func TestPing3(t *testing.T) {
 	client := createMockConnection()
 	defer client.Close()
 
-	args := []string{"echo", "chamber"}
+	args := []string{"PING", "echo", "chamber"}
 
-	client.Write([]byte(r.ToArray(append([]string{"PING"}, args...))))
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
 
-	assert.Equal(t, []byte(r.ToSimpleError("wrong number of arguments for 'ping' command")), response)
+	assert.Equal(t, r.ToSimpleError("wrong number of arguments for 'ping' command"), response)
 }
 
 func TestEcho1(t *testing.T) {
 	client := createMockConnection()
 	defer client.Close()
 
-	arg := "Wubba lubba dub dub!"
+	message := "Wubba lubba dub dub!"
+	args := []string{"ECHO", message}
 
-	client.Write([]byte(r.ToArray([]string{"ECHO", arg})))
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
 
-	assert.Equal(t, []byte(r.ToBulkString(arg)), response)
+	assert.Equal(t, r.ToBulkString(message), response)
 }
 
 func TestEcho2(t *testing.T) {
 	client := createMockConnection()
 	defer client.Close()
 
-	args := []string{"Wubba lubba dub dub!", "Morty!!!"}
+	args := []string{"ECHO", "Wubba lubba dub dub!", "Morty!!!"}
 
-	client.Write([]byte(r.ToArray(append([]string{"ECHO"}, args...))))
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
 
-	assert.Equal(t, []byte(r.ToSimpleError("wrong number of arguments for 'echo' command")), response)
+	assert.Equal(t, r.ToSimpleError("wrong number of arguments for 'echo' command"), response)
 }
 
 func TestStorage1(t *testing.T) {
@@ -104,14 +110,17 @@ func TestStorage1(t *testing.T) {
 	defer client.Close()
 
 	key, value := "salary", "123456"
+	args := []string{"SET", key, value}
 
-	client.Write([]byte(r.ToArray(append([]string{"SET"}, key, value))))
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
-	assert.Equal(t, []byte(r.ToSimpleString("OK")), response)
+	assert.Equal(t, r.ToSimpleString("OK"), response)
 
-	client.Write([]byte(r.ToArray(append([]string{"GET"}, key))))
+	args = []string{"GET", key}
+
+	client.Write(r.ToArray(args))
 	response = readBuffer(client)
-	assert.Equal(t, []byte(r.ToBulkString(value)), response)
+	assert.Equal(t, r.ToBulkString(value), response)
 }
 
 func TestStorage2(t *testing.T) {
@@ -120,13 +129,17 @@ func TestStorage2(t *testing.T) {
 
 	key, value := "description", "thing thing something thing"
 
-	client.Write([]byte(r.ToArray(append([]string{"SET"}, key, value))))
-	response := readBuffer(client)
-	assert.Equal(t, []byte(r.ToSimpleString("OK")), response)
+	args := []string{"SET", key, value}
 
-	client.Write([]byte(r.ToArray(append([]string{"GET"}, key))))
+	client.Write(r.ToArray(args))
+	response := readBuffer(client)
+	assert.Equal(t, r.ToSimpleString("OK"), response)
+
+	args = []string{"GET", key}
+
+	client.Write(r.ToArray(args))
 	response = readBuffer(client)
-	assert.Equal(t, []byte(r.ToBulkString(value)), response)
+	assert.Equal(t, r.ToBulkString(value), response)
 }
 
 func TestStorage3(t *testing.T) {
@@ -134,10 +147,11 @@ func TestStorage3(t *testing.T) {
 	defer client.Close()
 
 	key := "key"
+	args := []string{"SET", key}
 
-	client.Write([]byte(r.ToArray(append([]string{"SET"}, key))))
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
-	assert.Equal(t, []byte(r.ToSimpleError("wrong number of arguments for 'set' command")), response)
+	assert.Equal(t, r.ToSimpleError("wrong number of arguments for 'set' command"), response)
 }
 
 func TestStorageEX1(t *testing.T) {
@@ -147,22 +161,22 @@ func TestStorageEX1(t *testing.T) {
 	key, value, exp := "user:paswd:loggedin", "true", 3
 	args := []string{"SET", key, value, "EX", strconv.Itoa(exp)}
 
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
-	assert.Equal(t, []byte(r.ToSimpleString("OK")), response)
+	assert.Equal(t, r.ToSimpleString("OK"), response)
 
 	args = []string{"GET", key}
 
 	// GET immediately
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response = readBuffer(client)
-	assert.Equal(t, []byte(r.ToBulkString(value)), response)
+	assert.Equal(t, r.ToBulkString(value), response)
 
 	// GET after expiration
 	time.Sleep(time.Duration(exp) * time.Second)
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response = readBuffer(client)
-	assert.Equal(t, []byte(r.ToNull()), response)
+	assert.Equal(t, r.ToNull(), response)
 }
 
 func TestStorageEX2(t *testing.T) {
@@ -172,9 +186,9 @@ func TestStorageEX2(t *testing.T) {
 	key, value, exp := "user:paswd:loggedin", "true", "BAD_EXP"
 	args := []string{"SET", key, value, "EX", exp}
 
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
-	assert.Equal(t, []byte(r.ToSimpleError("value is not an integer or out of range")), response)
+	assert.Equal(t, r.ToSimpleError("value is not an integer or out of range"), response)
 }
 
 func TestStorageEX3(t *testing.T) {
@@ -184,9 +198,9 @@ func TestStorageEX3(t *testing.T) {
 	key, value, exp := "user:paswd:loggedin", "true", -11111
 	args := []string{"SET", key, value, "EX", strconv.Itoa(exp)}
 
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
-	assert.Equal(t, []byte(r.ToSimpleError("invalid expire time in 'set' command")), response)
+	assert.Equal(t, r.ToSimpleError("invalid expire time in 'set' command"), response)
 }
 
 func TestStoragePX1(t *testing.T) {
@@ -196,22 +210,22 @@ func TestStoragePX1(t *testing.T) {
 	key, value, exp := "user:paswd:loggedin", "true", 3000
 	args := []string{"SET", key, value, "PX", strconv.Itoa(exp)}
 
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
-	assert.Equal(t, []byte(r.ToSimpleString("OK")), response)
+	assert.Equal(t, r.ToSimpleString("OK"), response)
 
 	args = []string{"GET", key}
 
 	// GET immediately
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response = readBuffer(client)
-	assert.Equal(t, []byte(r.ToBulkString(value)), response)
+	assert.Equal(t, r.ToBulkString(value), response)
 
 	// GET after expiration
 	time.Sleep(time.Duration(exp) * time.Millisecond)
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response = readBuffer(client)
-	assert.Equal(t, []byte(r.ToNull()), response)
+	assert.Equal(t, r.ToNull(), response)
 }
 
 func TestStoragePX2(t *testing.T) {
@@ -221,9 +235,9 @@ func TestStoragePX2(t *testing.T) {
 	key, value, exp := "user:paswd:loggedin", "true", "BAD_EXP"
 	args := []string{"SET", key, value, "PX", exp}
 
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
-	assert.Equal(t, []byte(r.ToSimpleError("value is not an integer or out of range")), response)
+	assert.Equal(t, r.ToSimpleError("value is not an integer or out of range"), response)
 }
 
 func TestStoragePX3(t *testing.T) {
@@ -233,9 +247,9 @@ func TestStoragePX3(t *testing.T) {
 	key, value, exp := "user:paswd:loggedin", "true", -11111
 	args := []string{"SET", key, value, "PX", strconv.Itoa(exp)}
 
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
-	assert.Equal(t, []byte(r.ToSimpleError("invalid expire time in 'set' command")), response)
+	assert.Equal(t, r.ToSimpleError("invalid expire time in 'set' command"), response)
 }
 
 func TestStorageEXAT1(t *testing.T) {
@@ -245,22 +259,22 @@ func TestStorageEXAT1(t *testing.T) {
 	key, value, exp := "user:paswd:loggedin", "true", time.Now().Add(3*time.Second).Unix()
 	args := []string{"SET", key, value, "EXAT", strconv.FormatInt(exp, 10)}
 
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
-	assert.Equal(t, []byte(r.ToSimpleString("OK")), response)
+	assert.Equal(t, r.ToSimpleString("OK"), response)
 
 	args = []string{"GET", key}
 
 	// GET immediately
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response = readBuffer(client)
-	assert.Equal(t, []byte(r.ToBulkString(value)), response)
+	assert.Equal(t, r.ToBulkString(value), response)
 
 	// GET after expiration
 	time.Sleep(time.Duration(exp-time.Now().Unix()) * time.Second)
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response = readBuffer(client)
-	assert.Equal(t, []byte(r.ToNull()), response)
+	assert.Equal(t, r.ToNull(), response)
 }
 
 func TestStorageEXAT2(t *testing.T) {
@@ -270,9 +284,9 @@ func TestStorageEXAT2(t *testing.T) {
 	key, value, exp := "user:paswd:loggedin", "true", "BAD_EXP"
 	args := []string{"SET", key, value, "EXAT", exp}
 
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
-	assert.Equal(t, []byte(r.ToSimpleError("value is not an integer or out of range")), response)
+	assert.Equal(t, r.ToSimpleError("value is not an integer or out of range"), response)
 }
 
 func TestStorageEXAT3(t *testing.T) {
@@ -282,9 +296,9 @@ func TestStorageEXAT3(t *testing.T) {
 	key, value, exp := "user:paswd:loggedin", "true", -11111
 	args := []string{"SET", key, value, "EXAT", strconv.Itoa(exp)}
 
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
-	assert.Equal(t, []byte(r.ToSimpleError("invalid expire time in 'set' command")), response)
+	assert.Equal(t, r.ToSimpleError("invalid expire time in 'set' command"), response)
 }
 
 func TestStoragePXAT1(t *testing.T) {
@@ -294,22 +308,22 @@ func TestStoragePXAT1(t *testing.T) {
 	key, value, exp := "user:paswd:loggedin", "true", time.Now().Add(3*time.Second).UnixMilli()
 	args := []string{"SET", key, value, "PXAT", strconv.FormatInt(exp, 10)}
 
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
-	assert.Equal(t, []byte(r.ToSimpleString("OK")), response)
+	assert.Equal(t, r.ToSimpleString("OK"), response)
 
 	args = []string{"GET", key}
 
 	// GET immediately
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response = readBuffer(client)
-	assert.Equal(t, []byte(r.ToBulkString(value)), response)
+	assert.Equal(t, r.ToBulkString(value), response)
 
 	// GET after expiration
 	time.Sleep(time.Duration(exp-time.Now().UnixMilli()) * time.Millisecond)
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response = readBuffer(client)
-	assert.Equal(t, []byte(r.ToNull()), response)
+	assert.Equal(t, r.ToNull(), response)
 }
 
 func TestStoragePXAT2(t *testing.T) {
@@ -319,9 +333,9 @@ func TestStoragePXAT2(t *testing.T) {
 	key, value, exp := "user:paswd:loggedin", "true", "BAD_EXP"
 	args := []string{"SET", key, value, "PXAT", exp}
 
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
-	assert.Equal(t, []byte(r.ToSimpleError("value is not an integer or out of range")), response)
+	assert.Equal(t, r.ToSimpleError("value is not an integer or out of range"), response)
 }
 
 func TestStoragePXAT3(t *testing.T) {
@@ -331,9 +345,9 @@ func TestStoragePXAT3(t *testing.T) {
 	key, value, exp := "user:paswd:loggedin", "true", -11111
 	args := []string{"SET", key, value, "PXAT", strconv.Itoa(exp)}
 
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
-	assert.Equal(t, []byte(r.ToSimpleError("invalid expire time in 'set' command")), response)
+	assert.Equal(t, r.ToSimpleError("invalid expire time in 'set' command"), response)
 }
 
 func TestEXISTS1(t *testing.T) {
@@ -343,9 +357,9 @@ func TestEXISTS1(t *testing.T) {
 	// set
 	Set := func(key string, value string) {
 		args := []string{"SET", key, value}
-		client.Write([]byte(r.ToArray(args)))
+		client.Write(r.ToArray(args))
 		response := readBuffer(client)
-		assert.Equal(t, []byte(r.ToSimpleString("OK")), response)
+		assert.Equal(t, r.ToSimpleString("OK"), response)
 	}
 
 	db := map[string]string{
@@ -363,9 +377,9 @@ func TestEXISTS1(t *testing.T) {
 	// exists
 	args := []string{"EXISTS"}
 	args = append(args, keys...)
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
-	assert.Equal(t, []byte(r.ToInteger(3)), response)
+	assert.Equal(t, r.ToInteger(3), response)
 }
 
 func TestEXISTS2(t *testing.T) {
@@ -375,9 +389,9 @@ func TestEXISTS2(t *testing.T) {
 	// set
 	Set := func(key string, value string) {
 		args := []string{"SET", key, value}
-		client.Write([]byte(r.ToArray(args)))
+		client.Write(r.ToArray(args))
 		response := readBuffer(client)
-		assert.Equal(t, []byte(r.ToSimpleString("OK")), response)
+		assert.Equal(t, r.ToSimpleString("OK"), response)
 	}
 
 	db := map[string]string{
@@ -392,9 +406,9 @@ func TestEXISTS2(t *testing.T) {
 
 	// exists
 	args := []string{"EXISTS", "randomkey1", "randomkey2"}
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
-	assert.Equal(t, []byte(r.ToInteger(0)), response)
+	assert.Equal(t, r.ToInteger(0), response)
 }
 
 func TestEXISTS3(t *testing.T) {
@@ -402,7 +416,7 @@ func TestEXISTS3(t *testing.T) {
 	defer client.Close()
 
 	args := []string{"EXISTS"}
-	client.Write([]byte(r.ToArray(args)))
+	client.Write(r.ToArray(args))
 	response := readBuffer(client)
-	assert.Equal(t, []byte(r.ToSimpleError("wrong number of arguments for 'EXISTS' command")), response)
+	assert.Equal(t, r.ToSimpleError("wrong number of arguments for 'EXISTS' command"), response)
 }

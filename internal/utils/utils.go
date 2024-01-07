@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"bytes"
@@ -8,40 +8,11 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/Chuckinator2020/redis-server-lite-go/internal/r"
 )
 
-const (
-	SERVER_HOST = "0.0.0.0"
-	SERVER_PORT = "6379"
-	SERVER_TYPE = "tcp"
-)
-
-func main() {
-	startServer()
-}
-
-func startServer() {
-	fmt.Printf("Starting redis server on port %s ...\n", SERVER_PORT)
-	server, err := net.Listen(SERVER_TYPE, SERVER_HOST+":"+SERVER_PORT)
-	if err != nil {
-		fmt.Println("Error listening...", err.Error())
-		os.Exit(1)
-	}
-	defer server.Close()
-
-	fmt.Printf("Listening on %s ...\n", server.Addr())
-
-	for {
-		conn, err := server.Accept()
-		if err != nil {
-			fmt.Println("Error accepting...", err.Error())
-			os.Exit(1)
-		}
-		go processClient(conn)
-	}
-}
-
-func processClient(conn net.Conn) {
+func ProcessClient(conn net.Conn) {
 	defer conn.Close()
 
 	for {
@@ -70,51 +41,51 @@ func processClient(conn net.Conn) {
 
 		switch strings.ToUpper(messageContents[0]) {
 		case "PING":
-			res, err := handlePING(messageContents)
+			res, err := HandlePING(messageContents)
 			if err != nil {
-				output = ToSimpleError(err.Error())
+				output = r.ToSimpleError(err.Error())
 			} else {
-				output = ToBulkString(res)
+				output = r.ToBulkString(res)
 			}
 
 		case "ECHO":
-			res, err := handleECHO(messageContents)
+			res, err := HandleECHO(messageContents)
 			if err != nil {
-				output = ToSimpleError(err.Error())
+				output = r.ToSimpleError(err.Error())
 			} else {
-				output = ToBulkString(res)
+				output = r.ToBulkString(res)
 			}
 
 		case "GET":
-			res, err := handleGET(messageContents)
+			res, err := HandleGET(messageContents)
 			if err != nil {
 				if err.Error() == "NULL" {
-					output = ToNull()
+					output = r.ToNull()
 				} else {
-					output = ToSimpleError(err.Error())
+					output = r.ToSimpleError(err.Error())
 				}
 			} else {
-				output = ToBulkString(res)
+				output = r.ToBulkString(res)
 			}
 
 		case "SET":
-			res, err := handleSET(messageContents)
+			res, err := HandleSET(messageContents)
 			if err != nil {
-				output = ToSimpleError(err.Error())
+				output = r.ToSimpleError(err.Error())
 			} else {
-				output = ToSimpleString(res)
+				output = r.ToSimpleString(res)
 			}
 
 		case "EXISTS":
-			res, err := handleEXISTS(messageContents)
+			res, err := HandleEXISTS(messageContents)
 			if err != nil {
-				output = ToSimpleError(err.Error())
+				output = r.ToSimpleError(err.Error())
 			} else {
-				output = ToInteger(res)
+				output = r.ToInteger(res)
 			}
 
 		default:
-			output = ToSimpleError(fmt.Sprintf("unknown command '%s'", messageContents[0]))
+			output = r.ToSimpleError(fmt.Sprintf("unknown command '%s'", messageContents[0]))
 		}
 
 		fmt.Printf("Sending: %s\n", strings.ReplaceAll(output, "\r\n", "\\r\\n"))

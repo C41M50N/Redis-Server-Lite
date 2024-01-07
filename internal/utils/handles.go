@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 var db = sync.Map{}
 
 // https://redis.io/commands/ping/
-func handlePING(contents []string) (string, error) {
+func HandlePING(contents []string) (string, error) {
 	if len(contents) == 1 {
 		return "PONG", nil
 	} else if len(contents) == 2 {
@@ -22,7 +22,7 @@ func handlePING(contents []string) (string, error) {
 }
 
 // https://redis.io/commands/echo/
-func handleECHO(contents []string) (string, error) {
+func HandleECHO(contents []string) (string, error) {
 	if len(contents) == 2 {
 		return contents[1], nil
 	} else {
@@ -31,7 +31,7 @@ func handleECHO(contents []string) (string, error) {
 }
 
 // https://redis.io/commands/set/
-func handleSET(contents []string) (string, error) {
+func HandleSET(contents []string) (string, error) {
 	if len(contents) == 3 {
 		key := contents[1]
 		value := contents[2]
@@ -113,7 +113,7 @@ func handleSET(contents []string) (string, error) {
 }
 
 // https://redis.io/commands/get/
-func handleGET(contents []string) (string, error) {
+func HandleGET(contents []string) (string, error) {
 	if len(contents) == 2 {
 		key := contents[1]
 		value, ok := db.Load(key)
@@ -126,7 +126,7 @@ func handleGET(contents []string) (string, error) {
 }
 
 // https://redis.io/commands/exists/
-func handleEXISTS(contents []string) (int, error) {
+func HandleEXISTS(contents []string) (int, error) {
 	if len(contents) >= 2 {
 		count := 0
 		keys := contents[1:]

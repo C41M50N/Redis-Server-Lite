@@ -420,3 +420,40 @@ func TestEXISTS3(t *testing.T) {
 	response := readBuffer(client)
 	assert.Equal(t, r.ToSimpleError("wrong number of arguments for 'EXISTS' command"), response)
 }
+
+func TestDEL1(t *testing.T) {
+	client := createMockConnection()
+	defer client.Close()
+
+	// set
+	args := []string{"SET", "key1", "value1"}
+	client.Write(r.ToArray(args))
+	response := readBuffer(client)
+	assert.Equal(t, r.ToSimpleString("OK"), response)
+
+	args = []string{"SET", "key2", "value2"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToSimpleString("OK"), response)
+
+	args = []string{"SET", "key3", "value3"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToSimpleString("OK"), response)
+
+	// del
+	args = []string{"DEL", "key0", "key1", "key2"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToInteger(2), response)
+}
+
+func TestDEL2(t *testing.T) {
+	client := createMockConnection()
+	defer client.Close()
+
+	args := []string{"DEL"}
+	client.Write(r.ToArray(args))
+	response := readBuffer(client)
+	assert.Equal(t, r.ToSimpleError("wrong number of arguments for 'DEL' command"), response)
+}

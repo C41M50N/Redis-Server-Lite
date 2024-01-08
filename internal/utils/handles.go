@@ -140,3 +140,19 @@ func HandleEXISTS(contents []string) (int, error) {
 	}
 	return -1, fmt.Errorf("wrong number of arguments for 'EXISTS' command")
 }
+
+// https://redis.io/commands/del/
+func HandleDEL(contents []string) (int, error) {
+	if len(contents) >= 2 {
+		count := 0
+		keys := contents[1:]
+		for _, key := range keys {
+			_, loaded := db.LoadAndDelete(key)
+			if loaded {
+				count++
+			}
+		}
+		return count, nil
+	}
+	return -1, fmt.Errorf("wrong number of arguments for 'DEL' command")
+}

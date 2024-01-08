@@ -517,3 +517,63 @@ func TestINCR4(t *testing.T) {
 	response := readBuffer(client)
 	assert.Equal(t, r.ToSimpleError("wrong number of arguments for 'INCR' command"), response)
 }
+
+func TestDECR1(t *testing.T) {
+	client := createMockConnection()
+	defer client.Close()
+
+	// set
+	args := []string{"SET", "salary", "123000"}
+	client.Write(r.ToArray(args))
+	response := readBuffer(client)
+	assert.Equal(t, r.ToSimpleString("OK"), response)
+
+	// incr
+	args = []string{"DECR", "salary"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToInteger(122999), response)
+
+	// get
+	args = []string{"GET", "salary"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToBulkString("122999"), response)
+}
+
+func TestDECR2(t *testing.T) {
+	client := createMockConnection()
+	defer client.Close()
+
+	// set
+	args := []string{"SET", "salary", "enough"}
+	client.Write(r.ToArray(args))
+	response := readBuffer(client)
+	assert.Equal(t, r.ToSimpleString("OK"), response)
+
+	// incr
+	args = []string{"DECR", "salary"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToSimpleError("value is not an integer or out of range"), response)
+}
+
+func TestDECR3(t *testing.T) {
+	client := createMockConnection()
+	defer client.Close()
+
+	args := []string{"DECR", "key1"}
+	client.Write(r.ToArray(args))
+	response := readBuffer(client)
+	assert.Equal(t, r.ToInteger(-1), response)
+}
+
+func TestDECR4(t *testing.T) {
+	client := createMockConnection()
+	defer client.Close()
+
+	args := []string{"DECR"}
+	client.Write(r.ToArray(args))
+	response := readBuffer(client)
+	assert.Equal(t, r.ToSimpleError("wrong number of arguments for 'DECR' command"), response)
+}

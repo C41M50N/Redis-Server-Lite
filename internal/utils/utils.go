@@ -100,6 +100,14 @@ func ProcessClient(conn net.Conn) {
 				output = r.ToInteger(res)
 			}
 
+		case "DECR":
+			res, err := HandleDECR(messageContents)
+			if err != nil {
+				output = r.ToSimpleError(err.Error())
+			} else {
+				output = r.ToInteger(res)
+			}
+
 		default:
 			output = r.ToSimpleError(fmt.Sprintf("unknown command '%s'", messageContents[0]))
 		}

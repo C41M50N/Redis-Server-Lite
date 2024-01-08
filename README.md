@@ -46,5 +46,11 @@ Increments the number stored at `key` by one. If the key does not exist, it is
 INCR key
 ```
 
+### DECR
+Decrements the number stored at `key` by one. If the key does not exist, it is set to `0` before performing the operation. An error is returned if the key contains a value of the wrong type or contains a string that can not be represented as integer. This operation is limited to 64 bit signed integers. Returns the value of the key (as an integer) after the decrement.
+```
+DECR key
+```
+
 ## How It Works
 The server listens for clients. Once a client connects, a go routine is created to handle the client's session. During a session the client can send commands with RESP (Redis serialization protocol) messages. The server parses a message and then sends a response in the same RESP message format.

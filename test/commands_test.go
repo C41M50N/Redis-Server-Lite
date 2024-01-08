@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Chuckinator2020/redis-server-lite-go/internal/r"
-	"github.com/Chuckinator2020/redis-server-lite-go/internal/utils"
+	"github.com/C41M50N/redis-server-lite-go/internal/r"
+	"github.com/C41M50N/redis-server-lite-go/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -1,4 +1,4 @@
-module github.com/Chuckinator2020/redis-server-lite-go
+module github.com/C41M50N/redis-server-lite-go
 
 go 1.21.5
 

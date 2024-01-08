@@ -5,7 +5,7 @@ import (
 	"net"
 	"os"
 
-	"github.com/Chuckinator2020/redis-server-lite-go/internal/utils"
+	"github.com/C41M50N/redis-server-lite-go/internal/utils"
 )
 
 const (

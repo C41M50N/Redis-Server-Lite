@@ -156,3 +156,22 @@ func HandleDEL(contents []string) (int, error) {
 	}
 	return -1, fmt.Errorf("wrong number of arguments for 'DEL' command")
 }
+
+// https://redis.io/commands/incr/
+func HandleINCR(contents []string) (int, error) {
+	if len(contents) == 2 {
+		key := contents[1]
+		value, ok := db.Load(key)
+		if !ok {
+			value = "0"
+		}
+		intValue, err := strconv.ParseInt(value.(string), 10, 64)
+		if err != nil {
+			return -1, fmt.Errorf("value is not an integer or out of range")
+		}
+		intValue++
+		db.Store(key, fmt.Sprint(intValue))
+		return int(intValue), nil
+	}
+	return -1, fmt.Errorf("wrong number of arguments for 'INCR' command")
+}

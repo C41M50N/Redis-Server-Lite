@@ -1,6 +1,16 @@
 # Redis Server Lite
 A simplified Redis server implementation written in Golang. This is my solution for [John Crickett's Write Your Own Redis Server Coding Challenge](https://codingchallenges.fyi/challenges/challenge-redis).
 
+## How It Works
+The server listens for clients. Once a client connects, a go routine is created to handle the client's session. During a session the client can send commands with RESP (Redis serialization protocol) messages. The server parses a message and then sends a response in the same RESP message format.
+
+## How to Run
+```bash
+git clone https://github.com/C41M50N/Redis-Server-Lite
+cd Redis-Server-Lite
+go run cmd/redis-server/server.go
+```
+
 ## Supported Commands
 A list of the server's supported commands and their usage syntax.
 
@@ -51,6 +61,3 @@ Decrements the number stored at `key` by one. If the key does not exist, it is
 ```
 DECR key
 ```
-
-## How It Works
-The server listens for clients. Once a client connects, a go routine is created to handle the client's session. During a session the client can send commands with RESP (Redis serialization protocol) messages. The server parses a message and then sends a response in the same RESP message format.

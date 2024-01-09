@@ -1,4 +1,4 @@
-module github.com/C41M50N/redis-server-lite-go
+module github.com/C41M50N/Redis-Server-Lite
 
 go 1.21.5
 

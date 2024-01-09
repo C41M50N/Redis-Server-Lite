@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/C41M50N/redis-server-lite-go/internal/r"
+	"github.com/C41M50N/Redis-Server-Lite/internal/r"
 )
 
 func ProcessClient(conn net.Conn) {

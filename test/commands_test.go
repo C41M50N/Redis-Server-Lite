@@ -562,7 +562,7 @@ func TestDECR3(t *testing.T) {
 	client := createMockConnection()
 	defer client.Close()
 
-	args := []string{"DECR", "key1"}
+	args := []string{"DECR", "key"}
 	client.Write(r.ToArray(args))
 	response := readBuffer(client)
 	assert.Equal(t, r.ToInteger(-1), response)

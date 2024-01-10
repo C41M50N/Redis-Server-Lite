@@ -79,3 +79,36 @@ Returns the specified elements of the list stored at `key`. If the data type of
 ```
 LRANGE key start stop
 ```
+
+## Benchmarks
+The following benchmarks were performed on my M2 MacBook Pro.
+
+### Custom Redis
+```bash
+> redis-benchmark -t set,get -n 100000 -q
+SET: 42735.04 requests per second, p50=0.687 msec
+GET: 46019.32 requests per second, p50=0.615 msec
+
+> redis-benchmark -t set,get -n 100000 -q
+SET: 44014.08 requests per second, p50=0.695 msec
+GET: 46210.72 requests per second, p50=0.607 msec
+
+> redis-benchmark -t set,get -n 100000 -q
+SET: 44503.79 requests per second, p50=0.663 msec
+GET: 47169.81 requests per second, p50=0.591 msec
+```
+
+### Production Redis
+```bash
+> redis-benchmark -t set,get -n 100000 -q
+SET: 165289.25 requests per second, p50=0.143 msec
+GET: 159489.64 requests per second, p50=0.143 msec
+
+> redis-benchmark -t set,get -n 100000 -q
+SET: 163934.42 requests per second, p50=0.143 msec
+GET: 165016.50 requests per second, p50=0.143 msec
+
+> redis-benchmark -t set,get -n 100000 -q
+SET: 171821.30 requests per second, p50=0.143 msec
+GET: 168350.17 requests per second, p50=0.143 msec
+```

@@ -577,3 +577,206 @@ func TestDECR4(t *testing.T) {
 	response := readBuffer(client)
 	assert.Equal(t, r.ToSimpleError("wrong number of arguments for 'DECR' command"), response)
 }
+
+func TestLPUSH1(t *testing.T) {
+	client := createMockConnection()
+	defer client.Close()
+
+	args := []string{"LPUSH", "vehicles", "car", "truck", "plane"}
+	client.Write(r.ToArray(args))
+	response := readBuffer(client)
+	assert.Equal(t, r.ToInteger(3), response)
+
+	args = []string{"LPUSH", "vehicles", "train"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToInteger(4), response)
+}
+
+func TestLPUSH2(t *testing.T) {
+	client := createMockConnection()
+	defer client.Close()
+
+	// set
+	args := []string{"SET", "order", "39482"}
+	client.Write(r.ToArray(args))
+	response := readBuffer(client)
+	assert.Equal(t, r.ToSimpleString("OK"), response)
+
+	// lpush
+	args = []string{"LPUSH", "order", "value"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToSimpleError("WRONGTYPE Operation against a key holding the wrong kind of value"), response)
+}
+
+func TestLPUSH3(t *testing.T) {
+	client := createMockConnection()
+	defer client.Close()
+
+	args := []string{"LPUSH", "rand-key"}
+	client.Write(r.ToArray(args))
+	response := readBuffer(client)
+	assert.Equal(t, r.ToSimpleError("wrong number of arguments for 'LPUSH' command"), response)
+}
+
+func TestRPUSH1(t *testing.T) {
+	client := createMockConnection()
+	defer client.Close()
+
+	args := []string{"LPUSH", "candles", "cinnamon", "pumpkin spice", "cranberry"}
+	client.Write(r.ToArray(args))
+	response := readBuffer(client)
+	assert.Equal(t, r.ToInteger(3), response)
+
+	args = []string{"LPUSH", "candles", "marshmallow", "red apple"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToInteger(5), response)
+}
+
+func TestRPUSH2(t *testing.T) {
+	client := createMockConnection()
+	defer client.Close()
+
+	// set
+	args := []string{"SET", "order", "39482"}
+	client.Write(r.ToArray(args))
+	response := readBuffer(client)
+	assert.Equal(t, r.ToSimpleString("OK"), response)
+
+	// lpush
+	args = []string{"RPUSH", "order", "value"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToSimpleError("WRONGTYPE Operation against a key holding the wrong kind of value"), response)
+}
+
+func TestRPUSH3(t *testing.T) {
+	client := createMockConnection()
+	defer client.Close()
+
+	args := []string{"RPUSH", "rand-key"}
+	client.Write(r.ToArray(args))
+	response := readBuffer(client)
+	assert.Equal(t, r.ToSimpleError("wrong number of arguments for 'RPUSH' command"), response)
+}
+
+func TestLRANGE(t *testing.T) {
+	client := createMockConnection()
+	defer client.Close()
+
+	args := []string{"RPUSH", "key", "0", "1", "2", "3", "4"}
+	client.Write(r.ToArray(args))
+	response := readBuffer(client)
+	assert.Equal(t, r.ToInteger(5), response)
+
+	args = []string{"LRANGE", "key", "0", "-1"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToArray([]string{"0", "1", "2", "3", "4"}), response)
+
+	args = []string{"LRANGE", "key", "0", "3"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToArray([]string{"0", "1", "2", "3"}), response)
+
+	args = []string{"LRANGE", "key", "1", "2"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToArray([]string{"1", "2"}), response)
+
+	args = []string{"LRANGE", "key", "1", "2"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToArray([]string{"1", "2"}), response)
+
+	args = []string{"LRANGE", "key", "-2", "0"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToArray([]string{}), response)
+
+	args = []string{"LRANGE", "key", "-2", "2"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToArray([]string{}), response)
+
+	args = []string{"LRANGE", "key", "-2", "3"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToArray([]string{"3"}), response)
+
+	args = []string{"LRANGE", "key", "-2", "4"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToArray([]string{"3", "4"}), response)
+
+	args = []string{"LRANGE", "key", "-2", "-1"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToArray([]string{"3", "4"}), response)
+
+	args = []string{"LRANGE", "key", "-2", "-2"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToArray([]string{"3"}), response)
+
+	args = []string{"LRANGE", "key", "-2", "-3"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToArray([]string{}), response)
+
+	args = []string{"LRANGE", "key", "-100", "100"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToArray([]string{"0", "1", "2", "3", "4"}), response)
+
+	args = []string{"LRANGE", "key", "-1", "1"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToArray([]string{}), response)
+
+	args = []string{"LRANGE", "key", "-100", "1"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToArray([]string{"0", "1"}), response)
+}
+
+func TestLRANGE2(t *testing.T) {
+	client := createMockConnection()
+	defer client.Close()
+
+	// set
+	args := []string{"SET", "mean", "mug"}
+	client.Write(r.ToArray(args))
+	response := readBuffer(client)
+	assert.Equal(t, r.ToSimpleString("OK"), response)
+
+	// lrange
+	args = []string{"LRANGE", "mean", "0", "-1"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToSimpleError("WRONGTYPE Operation against a key holding the wrong kind of value"), response)
+}
+
+func TestLRANGE3(t *testing.T) {
+	client := createMockConnection()
+	defer client.Close()
+
+	// rpush
+	args := []string{"RPUSH", "key", "0", "1", "2", "3", "4"}
+	client.Write(r.ToArray(args))
+	response := readBuffer(client)
+	assert.Equal(t, r.ToInteger(5), response)
+
+	// lrange
+	args = []string{"LRANGE", "key", "0", "INFINITY"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToSimpleError("value is not an integer or out of range"), response)
+
+	args = []string{"LRANGE", "key"}
+	client.Write(r.ToArray(args))
+	response = readBuffer(client)
+	assert.Equal(t, r.ToSimpleError("wrong number of arguments for 'LRANGE' command"), response)
+}

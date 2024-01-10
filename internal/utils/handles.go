@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"sync"
 	"time"
@@ -193,4 +194,118 @@ func HandleDECR(contents []string) (int, error) {
 		return int(intValue), nil
 	}
 	return -1, fmt.Errorf("wrong number of arguments for 'DECR' command")
+}
+
+// https://redis.io/commands/lpush/
+func HandleLPUSH(contents []string) (int, error) {
+	if len(contents) >= 3 {
+		key := contents[1]
+		elements := contents[2:]
+		slices.Reverse(elements)
+
+		var listValue []string
+
+		value, ok := db.Load(key)
+		if !ok {
+			listValue = make([]string, 0)
+		} else {
+			var ok bool
+			listValue, ok = value.([]string)
+			if !ok {
+				return -1, fmt.Errorf("WRONGTYPE Operation against a key holding the wrong kind of value")
+			}
+		}
+
+		listValue = append(elements, listValue...)
+		db.Store(key, listValue)
+		return len(listValue), nil
+	}
+	return -1, fmt.Errorf("wrong number of arguments for 'LPUSH' command")
+}
+
+func HandleRPUSH(contents []string) (int, error) {
+	if len(contents) >= 3 {
+		key := contents[1]
+		elements := contents[2:]
+
+		var listValue []string
+
+		value, ok := db.Load(key)
+		if !ok {
+			listValue = make([]string, 0)
+		} else {
+			var ok bool
+			listValue, ok = value.([]string)
+			if !ok {
+				return -1, fmt.Errorf("WRONGTYPE Operation against a key holding the wrong kind of value")
+			}
+		}
+
+		listValue = append(listValue, elements...)
+		db.Store(key, listValue)
+		return len(listValue), nil
+	}
+	return -1, fmt.Errorf("wrong number of arguments for 'RPUSH' command")
+}
+
+func HandleLRANGE(contents []string) ([]string, error) {
+	if len(contents) == 4 {
+		key := contents[1]
+
+		var list []string
+
+		value, ok := db.Load(key)
+		if !ok {
+			return make([]string, 0), nil
+		} else {
+			var ok bool
+			list, ok = value.([]string)
+			if !ok {
+				return []string{}, fmt.Errorf("WRONGTYPE Operation against a key holding the wrong kind of value")
+			}
+		}
+
+		start, err := strconv.ParseInt(contents[2], 10, 64)
+		if err != nil {
+			return []string{}, fmt.Errorf("value is not an integer or out of range")
+		}
+
+		stop, err := strconv.ParseInt(contents[3], 10, 64)
+		if err != nil {
+			return []string{}, fmt.Errorf("value is not an integer or out of range")
+		}
+
+		fmt.Println(start, stop, list)
+
+		if int(start) >= len(list) {
+			return make([]string, 0), nil
+		} else if start == 0 && stop == -1 {
+			return list, nil
+		}
+
+		if start < 0 {
+			start = int64(len(list) + int(start))
+			if start < 0 {
+				start = 0
+			}
+		}
+
+		if stop < 0 {
+			stop = int64(len(list) + int(stop) + 1)
+			if stop < 0 {
+				stop = int64(len(list))
+			}
+		} else if int(stop) > len(list) {
+			stop = int64(len(list))
+		} else {
+			stop++
+		}
+
+		if start > stop {
+			return make([]string, 0), nil
+		}
+
+		return list[start:stop], nil
+	}
+	return []string{}, fmt.Errorf("wrong number of arguments for 'LRANGE' command")
 }

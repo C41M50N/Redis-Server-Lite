@@ -108,6 +108,30 @@ func ProcessClient(conn net.Conn) {
 				output = r.ToInteger(res)
 			}
 
+		case "LPUSH":
+			res, err := HandleLPUSH(messageContents)
+			if err != nil {
+				output = r.ToSimpleError(err.Error())
+			} else {
+				output = r.ToInteger(res)
+			}
+
+		case "RPUSH":
+			res, err := HandleRPUSH(messageContents)
+			if err != nil {
+				output = r.ToSimpleError(err.Error())
+			} else {
+				output = r.ToInteger(res)
+			}
+
+		case "LRANGE":
+			res, err := HandleLRANGE(messageContents)
+			if err != nil {
+				output = r.ToSimpleError(err.Error())
+			} else {
+				output = r.ToArray(res)
+			}
+
 		default:
 			output = r.ToSimpleError(fmt.Sprintf("unknown command '%s'", messageContents[0]))
 		}

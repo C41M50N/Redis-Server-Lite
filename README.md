@@ -61,3 +61,21 @@ Decrements the number stored at `key` by one. If the key does not exist, it is
 ```
 DECR key
 ```
+
+### LPUSH
+Insert all the specified values at the head of the list stored at `key`. If `key` does not exist, it is created as empty list before performing the push operations. When `key` holds a value that is not a list, an error is returned. Returns the length of the list after the push operation.
+```
+LPUSH key element [element ...]
+```
+
+### RPUSH
+Insert all the specified values at the tail of the list stored at `key`. If `key` does not exist, it is created as empty list before performing the push operation. When `key` holds a value that is not a list, an error is returned. Returns the length of the list after the push operation.
+```
+RPUSH key element [element ...]
+```
+
+### LRANGE
+Returns the specified elements of the list stored at `key`. If the data type of the value at the given `key` is not a list, then an error is returned. The offsets `start` and `stop` are zero-based indexes, with `0` being the first element of the list (the head of the list), `1` being the next element and so on. The offsets can also be negative numbers indicating offsets starting at the end of the list.
+```
+LRANGE key start stop
+```

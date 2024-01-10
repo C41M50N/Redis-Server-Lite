@@ -223,6 +223,7 @@ func HandleLPUSH(contents []string) (int, error) {
 	return -1, fmt.Errorf("wrong number of arguments for 'LPUSH' command")
 }
 
+// https://redis.io/commands/rpush/
 func HandleRPUSH(contents []string) (int, error) {
 	if len(contents) >= 3 {
 		key := contents[1]
@@ -248,6 +249,7 @@ func HandleRPUSH(contents []string) (int, error) {
 	return -1, fmt.Errorf("wrong number of arguments for 'RPUSH' command")
 }
 
+// https://redis.io/commands/lrange/
 func HandleLRANGE(contents []string) ([]string, error) {
 	if len(contents) == 4 {
 		key := contents[1]
